@@ -136,3 +136,34 @@ body {
   font-weight: 500 !important;
   letter-spacing: -0.01em;
 }
+
+/* GPU-accelerated Nebula breathing animations */
+@keyframes nebula-pulse-1 {
+  0% {
+    transform: translate(-50%, -50%) scale(0.95);
+    opacity: 0.45;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.05);
+    opacity: 0.65;
+  }
+}
+
+@keyframes nebula-pulse-2 {
+  0% {
+    transform: translate(-50%, -50%) scale(0.95) rotate(0deg);
+    opacity: 0.4;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.05) rotate(15deg);
+    opacity: 0.6;
+  }
+}
+
+.animate-nebula-1 {
+  animation: nebula-pulse-1 25s ease-in-out infinite alternate;
+}
+
+.animate-nebula-2 {
+  animation: nebula-pulse-2 30s ease-in-out infinite alternate;
+}

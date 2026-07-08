@@ -69,34 +69,6 @@ export default function SpaceBackground() {
       });
     }
 
-    // Nebula Setup
-    interface Nebula {
-      baseX: number;
-      baseY: number;
-      radius: number;
-      color: string;
-      phase: number;
-      pulseSpeed: number;
-    }
-    const nebulas: Nebula[] = [
-      {
-        baseX: 0.15,
-        baseY: 0.25,
-        radius: 380,
-        color: "rgba(192, 192, 192, 0.03)", // silver-white
-        phase: 0,
-        pulseSpeed: 0.0003,
-      },
-      {
-        baseX: 0.85,
-        baseY: 0.75,
-        radius: 460,
-        color: "rgba(160, 180, 200, 0.02)", // silver-blue-gray
-        phase: Math.PI,
-        pulseSpeed: 0.00025,
-      },
-    ];
-
     // Blackhole Accretion Disk Rotation
     let blackholeRotation = 0;
 
@@ -140,54 +112,24 @@ export default function SpaceBackground() {
 
     // Main animation loop
     let animationFrameId: number;
+    let lastTime = 0;
+    const fps = 30; // throttle canvas drawing to 30 FPS (saves CPU cycles & keeps main thread responsive)
+    const fpsInterval = 1000 / fps;
 
-    const tick = () => {
-      if (!isTabVisible) {
-        animationFrameId = requestAnimationFrame(tick);
-        return;
-      }
+    const tick = (time: number) => {
+      animationFrameId = requestAnimationFrame(tick);
+
+      if (!isTabVisible) return;
+
+      const elapsed = time - lastTime;
+      if (elapsed < fpsInterval) return;
+
+      // Adjust lastTime to target interval
+      lastTime = time - (elapsed % fpsInterval);
 
       ctx.clearRect(0, 0, width, height);
 
-      // 1. Deep base navy-black gradient (background)
-      const baseGrad = ctx.createRadialGradient(
-        width / 2,
-        height / 2,
-        10,
-        width / 2,
-        height / 2,
-        Math.max(width, height)
-      );
-      baseGrad.addColorStop(0, "#010102"); // extremely faint navy-black
-      baseGrad.addColorStop(0.5, "#000000");
-      baseGrad.addColorStop(1, "#000000");
-      ctx.fillStyle = baseGrad;
-      ctx.fillRect(0, 0, width, height);
-
-      // 2. Draw Nebula Wisps
-      nebulas.forEach((nebula) => {
-        const x = nebula.baseX * width;
-        const y = nebula.baseY * height - scrollYOffset * 0.08; // slow parallax
-
-        // breathing scale pulse
-        if (!prefersReducedMotion) {
-          nebula.phase += nebula.pulseSpeed;
-        }
-        const pulse = 1 + Math.sin(nebula.phase) * 0.05;
-        const radius = nebula.radius * pulse;
-
-        const grad = ctx.createRadialGradient(x, y, 10, x, y, radius);
-        grad.addColorStop(0, nebula.color);
-        grad.addColorStop(0.5, "rgba(100, 100, 100, 0.02)");
-        grad.addColorStop(1, "rgba(0, 0, 0, 0)");
-
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.fill();
-      });
-
-      // 3. Draw Stars with Parallax and Twinkle
+      // 1. Draw Stars with Parallax and Twinkle using fillRect (much faster than path arc/fill)
       stars.forEach((star) => {
         // Calculate parallax drift
         const parallaxY = (scrollYOffset * 0.12 * (star.size / 2)) % height;
@@ -198,16 +140,14 @@ export default function SpaceBackground() {
         let opacity = star.maxOpacity;
         if (!prefersReducedMotion) {
           star.phase += star.twinkleSpeed;
-          opacity = (Math.sin(star.phase) + 1) / 2 * star.maxOpacity;
+          opacity = ((Math.sin(star.phase) + 1) / 2) * star.maxOpacity;
         }
 
         ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
-        ctx.beginPath();
-        ctx.arc(x, y, star.size, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.fillRect(x - star.size / 2, y - star.size / 2, star.size, star.size);
       });
 
-      // 4. Draw Shooting Star (ambient detail)
+      // 2. Draw Shooting Star (ambient detail)
       if (!prefersReducedMotion) {
         // Random check to spawn
         if (!shootingStar.active && Date.now() - lastShootingStarTime > 15000) {
@@ -246,7 +186,7 @@ export default function SpaceBackground() {
         }
       }
 
-      // 5. Draw Blackhole/Wormhole (placed top-left, 180, 180 to avoid widgets)
+      // 3. Draw Blackhole/Wormhole (placed top-left, 180, 180 to avoid widgets)
       const bhX = 185;
       const bhY = 185 - scrollYOffset * 0.04; // parallax scroll offset
       
@@ -295,11 +235,10 @@ export default function SpaceBackground() {
 
         ctx.restore();
       }
-
-      animationFrameId = requestAnimationFrame(tick);
     };
 
-    tick();
+    // Start tick loop via requestAnimationFrame
+    animationFrameId = requestAnimationFrame(tick);
 
     // Cleanup
     return () => {
@@ -312,10 +251,38 @@ export default function SpaceBackground() {
   }, []);
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="fixed inset-0 w-full h-full -z-10 pointer-events-none"
-      style={{ mixBlendMode: "screen", display: "block" }}
-    />
+    <>
+      {/* Deep base navy-black background gradient with blur Nebulas (Delegated to CSS for GPU acceleration) */}
+      <div 
+        className="fixed inset-0 -z-20 pointer-events-none select-none"
+        style={{
+          background: "radial-gradient(circle at center, #010102 0%, #000000 60%, #000000 100%)",
+        }}
+      >
+        {/* Nebula 1: Silver-White */}
+        <div 
+          className="absolute w-[600px] sm:w-[760px] aspect-square rounded-full opacity-60 bg-[radial-gradient(circle,rgba(192,192,192,0.04)_0%,rgba(100,100,100,0.01)_50%,transparent_100%)] animate-nebula-1"
+          style={{
+            left: "15%",
+            top: "25%",
+            filter: "blur(60px)",
+          }}
+        />
+        {/* Nebula 2: Silver-Blue-Gray */}
+        <div 
+          className="absolute w-[700px] sm:w-[920px] aspect-square rounded-full opacity-60 bg-[radial-gradient(circle,rgba(160,180,200,0.03)_0%,rgba(100,100,100,0.01)_50%,transparent_100%)] animate-nebula-2"
+          style={{
+            left: "85%",
+            top: "75%",
+            filter: "blur(80px)",
+          }}
+        />
+      </div>
+      <canvas
+        ref={canvasRef}
+        className="fixed inset-0 w-full h-full -z-10 pointer-events-none"
+        style={{ mixBlendMode: "screen", display: "block" }}
+      />
+    </>
   );
 }

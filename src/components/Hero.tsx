@@ -169,7 +169,8 @@ export default function Hero() {
             className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto mt-2 relative"
           >
             <a
-              href="/resume.pdf"
+              href="/Resume.pdf"
+              download="Resume.pdf"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 px-6 py-3.5 font-tag text-base font-bold text-white bg-white/5 border border-white/15 hover:border-white hover:text-white rounded-full transition-all duration-300 hover:shadow-[0_0_15px_rgba(255,255,255,0.2)]"

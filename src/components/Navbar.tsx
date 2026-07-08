@@ -288,7 +288,8 @@ export default function Navbar() {
           </button>
 
           <a
-            href="/resume.pdf"
+            href="/Resume.pdf"
+            download="Resume.pdf"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 px-4 py-2 font-tag text-xs font-semibold text-zinc-300 bg-white/5 border border-white/10 hover:border-white hover:text-white rounded-full transition-all duration-300 hover:shadow-[0_0_15px_rgba(255,255,255,0.2)]"
@@ -384,7 +385,8 @@ export default function Navbar() {
               {/* Resume Button in Drawer */}
               <div className="pb-8">
                 <a
-                  href="/resume.pdf"
+                  href="/Resume.pdf"
+                  download="Resume.pdf"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full flex items-center justify-center gap-2 py-3.5 font-tag text-xs font-semibold text-zinc-300 bg-white/5 border border-white/10 rounded-xl hover:border-white hover:text-white transition-all duration-300 hover:shadow-[0_0_15px_rgba(255,255,255,0.15)]"

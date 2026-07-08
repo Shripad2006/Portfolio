@@ -1,0 +1,76 @@
+import { NextResponse } from "next/server";
+import { supabase } from "@/lib/supabase";
+
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const body = await request.json();
+    const { action, reply } = body;
+
+    if (!id) {
+      return NextResponse.json({
+        success: false,
+        message: "Missing thought ID."
+      }, { status: 400 });
+    }
+
+    if (action === "like") {
+      const { error } = await supabase.rpc("increment_likes", { thought_id: id });
+      if (error) throw error;
+      return NextResponse.json({ success: true, message: "Liked!" });
+    }
+
+    if (action === "dislike") {
+      const { error } = await supabase.rpc("increment_dislikes", { thought_id: id });
+      if (error) throw error;
+      return NextResponse.json({ success: true, message: "Disliked!" });
+    }
+
+    if (action === "reply") {
+      if (!reply || !reply.author || !reply.content) {
+        return NextResponse.json({
+          success: false,
+          message: "Reply author and content are required."
+        }, { status: 400 });
+      }
+
+      // Construct a clean, secure reply object
+      const replyData = {
+        id: reply.id || Math.random().toString(36).substring(2, 9),
+        author: reply.author.trim().substring(0, 50),
+        avatar: reply.avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${reply.author.trim()}`,
+        content: reply.content.trim().substring(0, 500),
+        timestamp: new Date().toISOString(),
+        approved: false // Pending approval
+      };
+
+      const { error } = await supabase.rpc("add_reply", {
+        thought_id: id,
+        reply_json: replyData
+      });
+      
+      if (error) throw error;
+      
+      return NextResponse.json({
+        success: true,
+        message: "Reply added!",
+        data: replyData
+      });
+    }
+
+    return NextResponse.json({
+      success: false,
+      message: "Invalid action."
+    }, { status: 400 });
+
+  } catch (error: any) {
+    console.error("POST /api/thoughts/[id] error:", error);
+    return NextResponse.json({
+      success: false,
+      message: "An error occurred while updating the thought."
+    }, { status: 500 });
+  }
+}

@@ -22,7 +22,7 @@ const tabs: TabContent[] = [
     label: "Programming Languages",
     icon: "</>",
     skills: [
-      { name: "Java", icon: "java" },
+      { name: "Java", icon: "custom/java" },
       { name: "JavaScript", icon: "javascript" },
       { name: "TypeScript", icon: "typescript" },
       { name: "SQL", icon: "sqlite" },
@@ -73,7 +73,7 @@ const tabs: TabContent[] = [
     label: "Cloud & DevOps",
     icon: "☁",
     skills: [
-      { name: "AWS (EC2, S3)", icon: "amazonwebservices" },
+      { name: "AWS (EC2, S3)", icon: "custom/aws" },
       { name: "Docker", icon: "docker" },
       { name: "Git", icon: "git" },
       { name: "GitHub", icon: "github/white" },
@@ -94,6 +94,24 @@ const tabs: TabContent[] = [
 ];
 
 function SkillIcon({ icon, name }: { icon: string; name: string }) {
+  if (icon === "custom/java") {
+    return (
+      <img 
+        src="/java.png" 
+        alt={`${name} icon`} 
+        className="w-8 h-8 object-contain"
+      />
+    );
+  }
+  if (icon === "custom/aws") {
+    return (
+      <img 
+        src="/aws.png" 
+        alt={`${name} icon`} 
+        className="w-8 h-8 object-contain"
+      />
+    );
+  }
   if (icon === "custom/spring-ai") {
     return (
       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#00c853" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
